@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ARCANA COUNTER
 
-## Getting Started
+ヴァンガード「Persona 30th Anniversary」向けの非公式アルカナマーカーカウンター。Next.js 16 / React 19 / TypeScriptで実装しています。
 
-First, run the development server:
+## 起動
 
-```bash
+Node.js 22.18以降（推奨24）で実行してください。
+
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+PCでは http://localhost:3000 を開きます。同じWi-FiのiPhone・iPadから試す場合は `npm run dev -- --hostname 0.0.0.0` で起動し、Safariで `http://PCのLAN内IPv4アドレス:3000` を開きます。Windowsファイアウォールが接続を許可している必要があります。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+本番動作は `npm run build` → `npm start` で確認できます。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 使い方
 
-## Learn More
+- P3（青）・P4（黄）・P5（赤）を切り替え、＋／−で0〜3枚に増減します。
+- 「表示設定」で使わないアルカナを非表示にできます。「すべて表示」で復帰できます。
+- 非表示のカウントも保持され、合計・3枚そろった種類の集計に含まれます。
+- 「リセット」→「0にリセット」で、選択中シリーズの非表示分を含めたカウントを0に戻します。表示設定・他シリーズのカウントは残ります。
+- 選択シリーズ・カウント・表示設定をlocalStorageへ自動保存します。別端末・別ブラウザ・別URLとは共有しません。ブラウザデータ削除で保存内容が消えます。
 
-To learn more about Next.js, take a look at the following resources:
+## アルカナ定義
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+[公式カードリスト（DZ-TBP02）](https://cf-vanguard.com/cardlist/cardsearch/?keyword=DZ-TBP02) のAR01〜AR47とユニットのアルカナ表記を参照しています（2026-10-25確認）。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- P3：愚者〜審判、永劫（22種類）
+- P4：愚者〜審判、永劫、道化師（23種類）
+- P5：愚者〜世界、信念、顧問官（24種類）
 
-## Deploy on Vercel
+定義は `app/arcana.ts`。デッキで使用しない種類は表示設定で絞り込んでください。カード画像や公式ロゴは収録していません。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 検証
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```sh
+npm run lint
+node --test app/arcana.test.mjs
+npm run build
+```
+
+データテストではシリーズ固有の定義、保存・復元、型・範囲の不正値を検証します。
+画面は44px以上の増減ボタン、2〜4列の可変レイアウト、モーダルのキャンセル初期フォーカスに対応しています。
+Safari実機での動作は別途確認が必要です。オフライン起動・端末間同期には対応していません。
