@@ -2,7 +2,23 @@
 
 ヴァンガード「Persona 30th Anniversary」向けの非公式アルカナマーカーカウンター。Next.js 16 / React 19 / TypeScriptで実装しています。
 
-## 起動
+## 公開（GitHub + Vercel）
+
+GitHubリポジトリをVercelに連携し、GitHubへのpushを起点にビルド・公開する運用を想定しています。
+
+1. このリポジトリをGitHubへpushします。
+2. Vercelの「New Project」からGitHubを連携し、対象リポジトリをImportします。
+3. Framework Presetが **Next.js**、Root Directoryがリポジトリのルートであることを確認します。Build Commandは `npm run build`、Output DirectoryはNext.jsの既定値を使用します。現在の実装に環境変数や外部データベースの設定は不要です。
+4. Production Branchを `main` に設定してDeployします。
+5. 発行された本番URLをiPhone・iPadのSafariで開き、カウント・表示設定・再読み込み後の復元を確認します。公開対象のユーザーがアクセスできることも確認してください。
+
+連携後は、作業ブランチへのpushでPreview Deploymentを作成し、プレビューで確認した変更を `main` にマージしてpushすると本番へ反映されます。
+
+利用時は同じ本番URLを開いてください。localStorageはURLのオリジン単位のため、プレビューURL・本番URL・独自ドメイン間でカウントや表示設定は共有されません。端末間の同期も行いません。
+
+公式手順：[GitHub連携](https://vercel.com/docs/git/vercel-for-github) / [Gitリポジトリからのデプロイ](https://vercel.com/docs/git)
+
+## ローカル開発
 
 Node.js 22.18以降（推奨24）で実行してください。
 
@@ -11,9 +27,9 @@ npm ci
 npm run dev
 ```
 
-PCでは http://localhost:3000 を開きます。同じWi-FiのiPhone・iPadから試す場合は `npm run dev -- --hostname 0.0.0.0` で起動し、Safariで `http://PCのLAN内IPv4アドレス:3000` を開きます。Windowsファイアウォールが接続を許可している必要があります。
+PCでは http://localhost:3000 を開きます。本番動作は `npm run build` → `npm start` で確認できます。
 
-本番動作は `npm run build` → `npm start` で確認できます。
+同じWi-FiのiPhone・iPadから開発中の画面を試す場合は `npm run dev -- --hostname 0.0.0.0` で起動し、Safariで `http://PCのLAN内IPv4アドレス:3000` を開きます。Windowsファイアウォールが接続を許可している必要があります。通常利用はVercelの本番URLを想定しています。
 
 ## 使い方
 
