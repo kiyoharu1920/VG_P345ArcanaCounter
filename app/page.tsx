@@ -6,6 +6,7 @@ import { arcanaFor, createState, parseState, seriesList, storageKey, type Counte
 export default function Home() {
   const [state, setState] = useState<CounterState>(createState);
   const [ready, setReady] = useState(false);
+  const [canSave, setCanSave] = useState(true);
   const [storageError, setStorageError] = useState("");
   const [editing, setEditing] = useState(false);
   const resetDialog = useRef<HTMLDialogElement>(null);
@@ -15,22 +16,24 @@ export default function Home() {
       const saved = localStorage.getItem(storageKey);
       // ブラウザの保存データとの初回同期。
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (saved) setState(parseState(saved));
+      if (saved !== null) setState(parseState(saved));
     } catch {
-      setStorageError("保存データを読み込めませんでした。この画面では操作できます。");
+      setCanSave(false);
+      setStorageError("保存データを読み込めません。元データを保護するため自動保存を停止しています。この画面での変更は保存されません。");
     }
     setReady(true);
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !canSave) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(state));
-    } catch {
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStorageError("");
+    } catch {
       setStorageError("端末に保存できません。ページを閉じると変更が失われます。");
     }
-  }, [ready, state]);
+  }, [ready, canSave, state]);
 
   const series = state.series;
   const deck = state.decks[series];
