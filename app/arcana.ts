@@ -29,6 +29,32 @@ const common = [
   ["judgement", "XX", "審判", "JUDGEMENT"],
 ] as const;
 const aeon = ["aeon", "XX", "永劫", "AEON"] as const;
+const french: Record<string, string> = {
+  fool: "LE MAT",
+  magician: "LE BATELEUR",
+  priestess: "LA PAPESSE",
+  empress: "L’IMPÉRATRICE",
+  emperor: "L’EMPEREUR",
+  hierophant: "LE PAPE",
+  lovers: "L’AMOUREUX",
+  chariot: "LE CHARIOT",
+  justice: "LA JUSTICE",
+  hermit: "L’HERMITE",
+  fortune: "LA ROUE DE FORTUNE",
+  strength: "LA FORCE",
+  hanged: "LE PENDU",
+  death: "LA MORT",
+  temperance: "TEMPÉRANCE",
+  devil: "LE DIABLE",
+  tower: "LA MAISON DIEU",
+  star: "L’ÉTOILE",
+  moon: "LA LUNE",
+  sun: "LE SOLEIL",
+  judgement: "LE JUGEMENT",
+  world: "LE MONDE",
+  faith: "LA FOI",
+  councillor: "LE CONSULTANT",
+};
 // 公式 DZ-TBP02/AR01–AR47 のマーカー名を使用。
 // https://cf-vanguard.com/cardlist/cardsearch/?keyword=DZ-TBP02
 export function arcanaFor(series: Series) {
@@ -37,14 +63,18 @@ export function arcanaFor(series: Series) {
     ["faith", "—", "信念", "FAITH"] as const,
     ["councillor", "I", "顧問官", "THE COUNCILLOR"] as const,
   ];
-  return [...common, ...extra].map(([id, numeral, name, english]) => ({ id, numeral, name, english }));
+  return [...common, ...extra].map(([id, numeral, name, english]) => ({
+    id, numeral, name,
+    caption: series === "p5" ? french[id] : english,
+    language: series === "p5" ? "fr" : "en",
+  }));
 }
 
 export type Deck = { counts: Record<string, number>; hidden: string[] };
-export type CounterState = { series: Series; decks: Record<Series, Deck> };
+export type CounterState = { mode: "light" | "dark"; series: Series; decks: Record<Series, Deck> };
 export const storageKey = "vg-persona-arcana:v1";
 export function createState(): CounterState {
-  return { series: "p3", decks: { p3: { counts: {}, hidden: [] }, p4: { counts: {}, hidden: [] }, p5: { counts: {}, hidden: [] } } };
+  return { mode: "dark", series: "p3", decks: { p3: { counts: {}, hidden: [] }, p4: { counts: {}, hidden: [] }, p5: { counts: {}, hidden: [] } } };
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -53,6 +83,7 @@ export function parseState(raw: string): CounterState {
   const value: unknown = JSON.parse(raw);
   const result = createState();
   if (!isRecord(value)) throw new Error("保存データの形式が不正です");
+  if (value.mode === "light" || value.mode === "dark") result.mode = value.mode;
   if (value.series === "p3" || value.series === "p4" || value.series === "p5") result.series = value.series;
   if (!isRecord(value.decks)) return result;
   for (const { id: series } of seriesList) {

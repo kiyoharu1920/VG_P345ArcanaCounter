@@ -29,3 +29,29 @@ test("保存値の型・範囲・未知キーを検証", () => {
   assert.deepEqual(state.decks.p4, { counts: {}, hidden: [] });
   for (const value of ["broken", "null", "[]", "3"]) assert.throws(() => parseState(value));
 });
+
+test("P5の全アルカナにフランス語のルビがあり、P3/P4は英語のまま", () => {
+  const cards = arcanaFor("p5");
+  assert.equal(cards.find(({ id }) => id === "magician").caption, "LE BATELEUR");
+  assert.equal(cards.find(({ id }) => id === "councillor").caption, "LE CONSULTANT");
+  for (const card of cards) {
+    assert.equal(card.language, "fr");
+    assert.ok(card.caption.trim().length > 0);
+    assert.notEqual(card.caption, arcanaFor("p4").find(({ id }) => id === card.id)?.caption);
+  }
+  for (const series of ["p3", "p4"]) {
+    assert.equal(arcanaFor(series).find(({ id }) => id === "magician").caption, "THE MAGICIAN");
+    assert.ok(arcanaFor(series).every(({ language }) => language === "en"));
+  }
+});
+test("表示モードの保存・検証と旧形式の保存データとの互換性", () => {
+  const state = createState();
+  state.mode = "light";
+  state.decks.p5.counts.magician = 3;
+  state.decks.p5.hidden = ["fool"];
+  assert.deepEqual(parseState(JSON.stringify(state)), state);
+  const { mode, ...legacy } = state;
+  assert.equal(mode, "light");
+  assert.deepEqual(parseState(JSON.stringify(legacy)), { ...state, mode: "dark" });
+  assert.deepEqual(parseState(JSON.stringify({ ...state, mode: "invalid" })), { ...state, mode: "dark" });
+});

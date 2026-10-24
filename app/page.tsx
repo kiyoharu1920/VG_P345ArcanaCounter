@@ -64,15 +64,11 @@ export default function Home() {
   }
 
   return (
-    <main className={`counter theme-${series}`}>
-      <header className="masthead">
-        <div className="brand"><span className="brand-mark" aria-hidden="true">✦</span><span>ARCANA<span className="brand-sub">COUNTER</span></span></div>
-        <span className="game-label">VANGUARD<br /><strong>PERSONA SERIES</strong></span>
-      </header>
-      <section className="intro">
-        <div><p className="eyebrow">YOUR DECK. YOUR ARCANA.</p><h1>アルカナを、その手に。</h1><p className="intro-copy">ファイトに集中。マーカー管理は、ここで。</p></div>
-        <div className="hero-number" aria-hidden="true">{series.toUpperCase()}<span>ARCANA TRACKER</span></div>
-      </section>
+    <main className={`counter theme-${series} mode-${state.mode}`}>
+      <h1 className="sr-only">アルカナカウンター</h1>
+      <div className="mode-switch" role="group" aria-label="表示モード">
+        {(["light", "dark"] as const).map((mode) => <button key={mode} aria-pressed={state.mode === mode} disabled={!ready} onClick={() => setState((previous) => ({ ...previous, mode }))}>{mode === "light" ? "☀ ライト" : "☾ ダーク"}</button>)}
+      </div>
       <nav className="series-tabs" aria-label="ペルソナシリーズ">
         {seriesList.map(({ id, name, subtitle }) => <button key={id} className={`series-tab tab-${id}`} aria-pressed={series === id} onClick={() => selectSeries(id)} disabled={!ready}><span className="tab-title">{name}<span className="tab-dot" /></span><span className="tab-subtitle">{subtitle}</span></button>)}
       </nav>
@@ -80,16 +76,15 @@ export default function Home() {
         <div className="dashboard-title"><span className="live-dot" />{series.toUpperCase()} <span>DECK STATUS</span></div>
         <div className="stats"><div><strong>{total.toString().padStart(2, "0")}</strong><span>全アルカナ合計</span></div><div><strong>{complete.toString().padStart(2, "0")}</strong><span>3枚そろった種類</span></div><div><strong>{visible.length}<small> / {arcana.length}</small></strong><span>表示中の種類</span></div></div>
       </section>
-      <div className="toolbar"><div><h2>アルカナ一覧</h2><span className="count-hint">各アルカナ 0–3</span></div><div className="toolbar-actions"><button className="secondary-button" aria-expanded={editing} aria-controls="visibility-settings" onClick={() => setEditing(!editing)} disabled={!ready}>{editing ? "✓ 設定を閉じる" : "⚙ 表示設定"}</button><button className="reset-button" onClick={() => resetDialog.current?.showModal()} disabled={!ready || total === 0}>↺ リセット</button></div></div>
+      <div className="toolbar"><div><h2>アルカナ一覧</h2><span className="count-hint">各アルカナ 0–3</span></div><div className="toolbar-actions"><button className="secondary-button" aria-expanded={editing} aria-controls={editing ? "visibility-settings" : undefined} onClick={() => setEditing(!editing)} disabled={!ready}>{editing ? "✓ 設定を閉じる" : "⚙ 表示設定"}</button><button className="reset-button" onClick={() => resetDialog.current?.showModal()} disabled={!ready || total === 0}>↺ リセット</button></div></div>
       {storageError && <p className="notice" role="status">{storageError}</p>}
       {!ready && <p role="status">保存データを読み込み中…</p>}
       {editing && <section className="visibility-settings" id="visibility-settings" aria-label="アルカナ表示設定"><div className="settings-heading"><div><h3>デッキに使うアルカナを選択</h3><p>非表示にしてもカウントは保持されます。</p></div><button className="secondary-button" onClick={() => setState((previous) => ({ ...previous, decks: { ...previous.decks, [series]: { ...previous.decks[series], hidden: [] } } }))}>すべて表示</button></div><div className="visibility-options">{arcana.map(({ id, name, numeral }) => <label key={id}><input type="checkbox" checked={!deck.hidden.includes(id)} onChange={() => toggleVisibility(id)} /><span className="option-numeral">{numeral}</span>{name}</label>)}</div></section>}
       <section className="arcana-grid" aria-label={`${series.toUpperCase()}のアルカナ`} aria-busy={!ready}>
-        {visible.map(({ id, name, numeral, english }) => {
+        {visible.map(({ id, name, numeral, caption, language }) => {
           const count = deck.counts[id] ?? 0;
           return <article key={id} className={`arcana-card ${count === 3 ? "is-complete" : ""}`} aria-label={name}>
-            <div className="card-heading"><span className="arcana-numeral">{numeral}</span><span className="card-status">{count === 3 ? "COMPLETE" : "ARCANA"}</span></div>
-            <div className="arcana-title"><h3>{name}</h3><p>{english}</p></div>
+            <h3 className="arcana-label"><span className="arcana-prefix">ARCANA :</span><ruby><span>{numeral} {name}</span><rp>（</rp><rt lang={language}>{caption}</rt><rp>）</rp></ruby></h3>
             <div className="count-controls"><button aria-label={`${name}を1減らす`} disabled={!ready || count === 0} onClick={() => changeCount(id, -1)}>−</button><output aria-label={`${name}の枚数`} aria-live="polite">{count}</output><button className="plus-button" aria-label={`${name}を1増やす`} disabled={!ready || count === 3} onClick={() => changeCount(id, 1)}>＋</button></div>
             <div className="count-segments" aria-hidden="true">{[1, 2, 3].map((step) => <span key={step} className={count >= step ? "filled" : ""} />)}</div>
           </article>;
