@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { arcanaFor, createState, nextEnergy, parseState, seriesList, storageKey, type CounterState, type Series } from "./arcana";
 
 export default function Home() {
@@ -58,11 +58,25 @@ export default function Home() {
     });
   }
 
-  function changeEnergy(key: "energy" | "opponentEnergy", delta: number) {
+  function changeEnergy(key: "energy" | "opponentEnergy", energy: number) {
     setState((previous) => {
       const current = previous.decks[series];
-      return { ...previous, decks: { ...previous.decks, [series]: { ...current, [key]: nextEnergy(current[key], delta) } } };
+      return { ...previous, decks: { ...previous.decks, [series]: { ...current, [key]: energy } } };
     });
+  }
+
+  function selectEnergyAtPointer(event: PointerEvent<HTMLDivElement>, key: "energy" | "opponentEnergy") {
+    let distance = Infinity;
+    let energy = 0;
+    for (const marker of event.currentTarget.querySelectorAll<HTMLButtonElement>("button")) {
+      const rect = marker.getBoundingClientRect();
+      const nextDistance = Math.abs(event.clientX - (rect.left + rect.width / 2));
+      if (nextDistance < distance) {
+        distance = nextDistance;
+        energy = Number(marker.value);
+      }
+    }
+    changeEnergy(key, energy);
   }
 
   function selectSeries(value: Series) {
@@ -84,10 +98,20 @@ export default function Home() {
           const label = opponent ? "対戦相手" : "自分";
           const energy = deck[key];
           return <section key={key} id={opponent ? "opponent-energy" : undefined} className={`dashboard energy-counter${opponent ? " opponent-energy" : ""}`} aria-label={`${label}のエネルギー`}>
-            <div className="energy-heading"><div><h2>{label}のエネルギー</h2><p>エネルギージェネレーター · 上限10</p></div><button className="reset-button" aria-label={`${label}のエネルギーを0にリセット`} disabled={!ready || energy === 0} onClick={() => changeEnergy(key, -energy)}>↺ リセット</button></div>
-            <div className="count-controls energy-controls"><button aria-label={`${label}のエネルギーを1減らす`} disabled={!ready || energy === 0} onClick={() => changeEnergy(key, -1)}>−</button><output aria-label={`${label}のエネルギーの数`} aria-live="polite">{energy}<small> / 10</small></output><button className="plus-button" aria-label={`${label}のエネルギーを1増やす`} disabled={!ready || energy === 10} onClick={() => changeEnergy(key, 1)}>＋</button></div>
-            <div className="energy-markers" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <span key={index} className={index < energy ? "filled" : ""}>{index < energy ? "◆" : "◇"}</span>)}</div>
-            <div className="energy-actions"><button className="secondary-button" disabled={!ready || energy === 10} onClick={() => changeEnergy(key, 3)}>チャージ ＋3</button><button className="secondary-button" disabled={!ready || energy < 7} onClick={() => changeEnergy(key, -7)}>ブラスト −7</button></div>
+            <div className="energy-heading"><div><h2>{label}のエネルギー</h2><p>エネルギージェネレーター · 上限10</p></div><button className="reset-button" aria-label={`${label}のエネルギーを0にリセット`} disabled={!ready || energy === 0} onClick={() => changeEnergy(key, 0)}>↺ リセット</button></div>
+            <output className="sr-only" aria-label={`${label}のエネルギーの数`} aria-live="polite">{energy}</output>
+            <div className="energy-markers" role="group" aria-label={`${label}のエネルギーを選択`}
+              onPointerDown={(event) => {
+                if (!ready || !event.isPrimary || event.button !== 0) return;
+                event.currentTarget.setPointerCapture(event.pointerId);
+                selectEnergyAtPointer(event, key);
+              }}
+              onPointerMove={(event) => {
+                if (event.currentTarget.hasPointerCapture(event.pointerId)) selectEnergyAtPointer(event, key);
+              }}>
+              {Array.from({ length: 10 }, (_, index) => <button key={index} value={index + 1} disabled={!ready} className={index < energy ? "filled" : ""} aria-label={`${label}のエネルギーを${index + 1}に設定`} aria-pressed={energy === index + 1} onClick={() => changeEnergy(key, index + 1)}>{index + 1}</button>)}
+            </div>
+            <div className="energy-actions"><button className="secondary-button energy-step" aria-label={`${label}のエネルギーを1減らす`} disabled={!ready || energy === 0} onClick={() => changeEnergy(key, nextEnergy(energy, -1))}>−</button><button className="secondary-button" disabled={!ready || energy < 7} onClick={() => changeEnergy(key, nextEnergy(energy, -7))}>ブラスト −7</button><button className="secondary-button" disabled={!ready || energy === 10} onClick={() => changeEnergy(key, nextEnergy(energy, 3))}>チャージ ＋3</button><button className="secondary-button energy-step" aria-label={`${label}のエネルギーを1増やす`} disabled={!ready || energy === 10} onClick={() => changeEnergy(key, nextEnergy(energy, 1))}>＋</button></div>
           </section>;
         })}
       </section>

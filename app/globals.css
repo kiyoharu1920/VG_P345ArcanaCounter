@@ -75,13 +75,13 @@ h2 { margin: 0; font-size: 16px; font-weight: 700; }.count-hint { color: var(--m
 .energy-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .energy-heading p { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
 .energy-heading .reset-button { flex-shrink: 0; }
-.energy-controls { max-width: 320px; margin: 12px auto; }
-.energy-controls output { color: var(--accent); }
-.energy-controls small { color: var(--muted); font-size: 14px; font-weight: 400; }
-.energy-actions { display: flex; justify-content: center; gap: 8px; }
-.energy-markers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; max-width: 400px; margin: 0 auto 12px; }
-.energy-markers span { display: grid; place-items: center; min-height: 24px; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 14px; background: var(--control); }
+.energy-actions { display: grid; grid-template-columns: 44px repeat(2, minmax(0, 1fr)) 44px; gap: 6px; max-width: 400px; margin: auto; }
+.energy-actions .secondary-button { padding: 0 4px; }
+.energy-actions .energy-step { font-size: 22px; }
+.energy-markers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; max-width: 400px; margin: 16px auto 12px; touch-action: none; user-select: none; }
+.energy-markers button { display: grid; place-items: center; min-width: 0; min-height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 12px; font-weight: 700; background: var(--control); }
 .energy-markers .filled { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.energy-markers [aria-pressed="true"] { outline: 2px solid var(--foreground); outline-offset: 1px; }
 .count-segments { display: flex; gap: 5px; margin-top: 10px; }.count-segments span { flex: 1; height: 3px; border-radius: 2px; background: var(--border); }.count-segments .filled { background: var(--accent); }
 .visibility-settings { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }.settings-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }.settings-heading h3 { margin: 0; font-size: 14px; }.settings-heading p { color: var(--muted); font-size: 11px; line-height: 1.8; }.visibility-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }.visibility-options label { touch-action: manipulation; display: flex; align-items: center; min-height: 44px; gap: 7px; font-size: 12px; cursor: pointer; }.visibility-options input { width: 18px; height: 18px; accent-color: var(--accent); }.option-numeral { color: var(--muted); font-size: 10px; min-width: 23px; }
 .empty-state { text-align: center; padding: 35px 12px; border: 1px dashed var(--border); border-radius: 12px; }.empty-state > span { color: var(--accent); font-size: 35px; }.empty-state h3 { font-size: 16px; }.empty-state p { color: var(--muted); font-size: 12px; line-height: 1.8; }
