@@ -70,11 +70,14 @@ export function arcanaFor(series: Series) {
   }));
 }
 
-export type Deck = { counts: Record<string, number>; hidden: string[] };
+export type Deck = { energy: number; counts: Record<string, number>; hidden: string[] };
 export type CounterState = { mode: "light" | "dark"; series: Series; decks: Record<Series, Deck> };
 export const storageKey = "vg-persona-arcana:v1";
 export function createState(): CounterState {
-  return { mode: "dark", series: "p3", decks: { p3: { counts: {}, hidden: [] }, p4: { counts: {}, hidden: [] }, p5: { counts: {}, hidden: [] } } };
+  return { mode: "dark", series: "p3", decks: { p3: { energy: 0, counts: {}, hidden: [] }, p4: { energy: 0, counts: {}, hidden: [] }, p5: { energy: 0, counts: {}, hidden: [] } } };
+}
+export function nextEnergy(energy: number, delta: number): number {
+  return energy + delta < 0 ? energy : Math.min(10, energy + delta);
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -89,6 +92,7 @@ export function parseState(raw: string): CounterState {
   for (const { id: series } of seriesList) {
     const deck = value.decks[series];
     if (!isRecord(deck)) continue;
+    if (typeof deck.energy === "number" && Number.isInteger(deck.energy) && deck.energy >= 0 && deck.energy <= 10) result.decks[series].energy = deck.energy;
     for (const { id } of arcanaFor(series)) {
       const count = isRecord(deck.counts) ? deck.counts[id] : undefined;
       if (typeof count === "number" && Number.isInteger(count) && count >= 0 && count <= 3) result.decks[series].counts[id] = count;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { arcanaFor, createState, parseState, seriesList, storageKey, type CounterState, type Series } from "./arcana";
+import { arcanaFor, createState, nextEnergy, parseState, seriesList, storageKey, type CounterState, type Series } from "./arcana";
 
 export default function Home() {
   const [state, setState] = useState<CounterState>(createState);
@@ -58,6 +58,13 @@ export default function Home() {
     });
   }
 
+  function changeEnergy(delta: number) {
+    setState((previous) => {
+      const current = previous.decks[series];
+      return { ...previous, decks: { ...previous.decks, [series]: { ...current, energy: nextEnergy(current.energy, delta) } } };
+    });
+  }
+
   function selectSeries(value: Series) {
     setState((previous) => ({ ...previous, series: value }));
     setEditing(false);
@@ -72,6 +79,11 @@ export default function Home() {
       <nav className="series-tabs" aria-label="ペルソナシリーズ">
         {seriesList.map(({ id, name, subtitle }) => <button key={id} className={`series-tab tab-${id}`} aria-pressed={series === id} onClick={() => selectSeries(id)} disabled={!ready}><span className="tab-title">{name}<span className="tab-dot" /></span><span className="tab-subtitle">{subtitle}</span></button>)}
       </nav>
+      <section className="dashboard energy-counter" aria-labelledby="energy-title">
+        <div className="energy-heading"><div><h2 id="energy-title">エネルギー</h2><p>エネルギージェネレーター · 上限10</p></div><button className="reset-button" aria-label="エネルギーを0にリセット" disabled={!ready || deck.energy === 0} onClick={() => changeEnergy(-deck.energy)}>↺ リセット</button></div>
+        <div className="count-controls energy-controls"><button aria-label="エネルギーを1減らす" disabled={!ready || deck.energy === 0} onClick={() => changeEnergy(-1)}>−</button><output aria-label="エネルギーの数" aria-live="polite">{deck.energy}<small> / 10</small></output><button className="plus-button" aria-label="エネルギーを1増やす" disabled={!ready || deck.energy === 10} onClick={() => changeEnergy(1)}>＋</button></div>
+        <div className="energy-actions"><button className="secondary-button" disabled={!ready || deck.energy === 10} onClick={() => changeEnergy(3)}>チャージ ＋3</button><button className="secondary-button" disabled={!ready || deck.energy < 7} onClick={() => changeEnergy(-7)}>ブラスト −7</button></div>
+      </section>
       <section className="dashboard" aria-label="カウンター概要">
         <div className="dashboard-title"><span className="live-dot" />{series.toUpperCase()} <span>DECK STATUS</span></div>
         <div className="stats"><div><strong>{total.toString().padStart(2, "0")}</strong><span>全アルカナ合計</span></div><div><strong>{complete.toString().padStart(2, "0")}</strong><span>3枚そろった種類</span></div><div><strong>{visible.length}<small> / {arcana.length}</small></strong><span>表示中の種類</span></div></div>
