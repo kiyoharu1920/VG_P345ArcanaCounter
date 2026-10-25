@@ -109,7 +109,7 @@ export default function Home() {
               onPointerMove={(event) => {
                 if (event.currentTarget.hasPointerCapture(event.pointerId)) selectEnergyAtPointer(event, key);
               }}>
-              {Array.from({ length: 11 }, (_, count) => <button key={count} value={count} disabled={!ready} className={count > 0 && count <= energy ? "filled" : ""} aria-label={`${label}のエネルギーを${count}に設定`} aria-pressed={energy === count} onClick={() => changeEnergy(key, count)}>{count}</button>)}
+              {Array.from({ length: 11 }, (_, count) => <button key={count} value={count} disabled={!ready} className={count <= energy ? "filled" : ""} aria-label={`${label}のエネルギーを${count}に設定`} aria-pressed={energy === count} onClick={() => changeEnergy(key, count)}>{count}</button>)}
             </div>
             <div className="energy-actions"><button className="secondary-button energy-step" aria-label={`${label}のエネルギーを1減らす`} disabled={!ready || energy === 0} onClick={() => changeEnergy(key, nextEnergy(energy, -1))}>−</button><button className="secondary-button" disabled={!ready || energy < 7} onClick={() => changeEnergy(key, nextEnergy(energy, -7))}>ブラスト −7</button><button className="secondary-button" disabled={!ready || energy === 10} onClick={() => changeEnergy(key, nextEnergy(energy, 3))}>チャージ ＋3</button><button className="secondary-button energy-step" aria-label={`${label}のエネルギーを1増やす`} disabled={!ready || energy === 10} onClick={() => changeEnergy(key, nextEnergy(energy, 1))}>＋</button></div>
           </section>;
