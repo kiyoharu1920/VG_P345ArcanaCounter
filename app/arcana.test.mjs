@@ -25,9 +25,30 @@ test("シリーズ別のカウント・非表示・選択状態を復元", () =>
 test("保存値の型・範囲・未知キーを検証", () => {
   const state = parseState(JSON.stringify({ series: "p6", decks: { p3: { counts: { fool: 4, magician: -1, priestess: 1.5, empress: "3", emperor: 3, invalid: 1 }, hidden: ["fool", "invalid", "fool", 4] }, p4: null } }));
   assert.equal(state.series, "p3");
-  assert.deepEqual(state.decks.p3, { energy: 0, counts: { emperor: 3 }, hidden: ["fool"] });
-  assert.deepEqual(state.decks.p4, { energy: 0, counts: {}, hidden: [] });
+  assert.deepEqual(state.decks.p3, { energy: 0, opponentEnergy: 0, counts: { emperor: 3 }, hidden: ["fool"] });
+  assert.deepEqual(state.decks.p4, { energy: 0, opponentEnergy: 0, counts: {}, hidden: [] });
   for (const value of ["broken", "null", "[]", "3"]) assert.throws(() => parseState(value));
+});
+
+test("対戦相手の独立した残量・表示設定の保存と旧形式の互換性", () => {
+  const state = createState();
+  state.showOpponent = false;
+  state.decks.p3.energy = 3;
+  state.decks.p3.opponentEnergy = 10;
+  state.decks.p4.opponentEnergy = 7;
+  assert.deepEqual(parseState(JSON.stringify(state)), state);
+  const { showOpponent, ...legacy } = state;
+  assert.equal(showOpponent, false);
+  for (const deck of Object.values(legacy.decks)) delete deck.opponentEnergy;
+  const restored = parseState(JSON.stringify(legacy));
+  assert.equal(restored.showOpponent, true);
+  assert.equal(restored.decks.p3.energy, 3);
+  assert.equal(restored.decks.p3.opponentEnergy, 0);
+  for (const energy of [-1, 11, 1.5, "3", null]) {
+    const parsed = parseState(JSON.stringify({ showOpponent: "false", decks: { p3: { opponentEnergy: energy } } }));
+    assert.equal(parsed.decks.p3.opponentEnergy, 0);
+    assert.equal(parsed.showOpponent, true);
+  }
 });
 
 test("P5の全アルカナにフランス語のルビがあり、P3/P4は英語のまま", () => {

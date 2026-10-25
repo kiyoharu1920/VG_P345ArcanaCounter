@@ -70,11 +70,11 @@ export function arcanaFor(series: Series) {
   }));
 }
 
-export type Deck = { energy: number; counts: Record<string, number>; hidden: string[] };
-export type CounterState = { mode: "light" | "dark"; series: Series; decks: Record<Series, Deck> };
+export type Deck = { energy: number; opponentEnergy: number; counts: Record<string, number>; hidden: string[] };
+export type CounterState = { mode: "light" | "dark"; showOpponent: boolean; series: Series; decks: Record<Series, Deck> };
 export const storageKey = "vg-persona-arcana:v1";
 export function createState(): CounterState {
-  return { mode: "dark", series: "p3", decks: { p3: { energy: 0, counts: {}, hidden: [] }, p4: { energy: 0, counts: {}, hidden: [] }, p5: { energy: 0, counts: {}, hidden: [] } } };
+  return { mode: "dark", showOpponent: true, series: "p3", decks: { p3: { energy: 0, opponentEnergy: 0, counts: {}, hidden: [] }, p4: { energy: 0, opponentEnergy: 0, counts: {}, hidden: [] }, p5: { energy: 0, opponentEnergy: 0, counts: {}, hidden: [] } } };
 }
 export function nextEnergy(energy: number, delta: number): number {
   return energy + delta < 0 ? energy : Math.min(10, energy + delta);
@@ -87,12 +87,16 @@ export function parseState(raw: string): CounterState {
   const result = createState();
   if (!isRecord(value)) throw new Error("保存データの形式が不正です");
   if (value.mode === "light" || value.mode === "dark") result.mode = value.mode;
+  if (typeof value.showOpponent === "boolean") result.showOpponent = value.showOpponent;
   if (value.series === "p3" || value.series === "p4" || value.series === "p5") result.series = value.series;
   if (!isRecord(value.decks)) return result;
   for (const { id: series } of seriesList) {
     const deck = value.decks[series];
     if (!isRecord(deck)) continue;
-    if (typeof deck.energy === "number" && Number.isInteger(deck.energy) && deck.energy >= 0 && deck.energy <= 10) result.decks[series].energy = deck.energy;
+    for (const key of ["energy", "opponentEnergy"] as const) {
+      const energy = deck[key];
+      if (typeof energy === "number" && Number.isInteger(energy) && energy >= 0 && energy <= 10) result.decks[series][key] = energy;
+    }
     for (const { id } of arcanaFor(series)) {
       const count = isRecord(deck.counts) ? deck.counts[id] : undefined;
       if (typeof count === "number" && Number.isInteger(count) && count >= 0 && count <= 3) result.decks[series].counts[id] = count;
